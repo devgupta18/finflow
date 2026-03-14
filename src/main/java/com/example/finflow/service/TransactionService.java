@@ -4,9 +4,12 @@ import com.example.finflow.entity.*;
 import com.example.finflow.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionalApplicationListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class TransactionService {
@@ -30,7 +33,7 @@ public class TransactionService {
     }
 
     @Transactional(dontRollbackOn = RuntimeException.class)
-    public void postTransaction(Long sourceAccountId, Long destinationAccountId , BigDecimal amount, String description) {
+    public List<Transaction> postTransaction(Long sourceAccountId, Long destinationAccountId , BigDecimal amount, String description) {
         // Fetch source and destination accounts
         Account sourceAccount = accountRepository.findById(sourceAccountId).orElseThrow( () -> new RuntimeException("Account not found") );
         Account destinationAccount = accountRepository.findById(destinationAccountId).orElseThrow( () -> new RuntimeException("Account not found") );
@@ -50,7 +53,9 @@ public class TransactionService {
         accountRepository.save(destinationAccount);
 
         // Log the transactions
-        transactionRepository.save(buildTransaction(sourceAccount, TransactionType.DEBIT, amount, description, TransactionStatus.COMPLETED));
-        transactionRepository.save(buildTransaction(destinationAccount, TransactionType.CREDIT, amount, description,  TransactionStatus.COMPLETED));
+        List<Transaction> transactions = new ArrayList<>();
+        transactions.add(transactionRepository.save(buildTransaction(sourceAccount, TransactionType.DEBIT, amount, description, TransactionStatus.COMPLETED)));
+        transactions.add(transactionRepository.save(buildTransaction(destinationAccount, TransactionType.CREDIT, amount, description,  TransactionStatus.COMPLETED)));
+        return transactions;
     }
 }
