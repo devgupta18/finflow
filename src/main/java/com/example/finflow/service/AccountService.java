@@ -1,5 +1,6 @@
 package com.example.finflow.service;
 
+import com.example.finflow.dto.AccountResponseDTO;
 import com.example.finflow.entity.Account;
 import com.example.finflow.entity.AccountType;
 import com.example.finflow.entity.User;
@@ -21,6 +22,8 @@ public class AccountService {
         this.userRepository = userRepository;
     }
 
+
+
     public Account createAccount(Long userId, AccountType type, String currency) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -32,5 +35,11 @@ public class AccountService {
         account.setAccountNumber("ACC-" + System.currentTimeMillis());
         account.setUser(user);
         return accountRepository.save(account);
+    }
+
+    public Account getAccountById(Long accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        return account;
     }
 }
