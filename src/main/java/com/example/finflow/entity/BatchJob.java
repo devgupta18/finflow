@@ -19,6 +19,7 @@ public class BatchJob {
     private BatchJobStatus status;
     private Integer totalTransactions;
     private Integer processedTransactions;
+    private Integer failedTransactions;
     private LocalDateTime createdAt;
     private LocalDateTime completeAt;
 }

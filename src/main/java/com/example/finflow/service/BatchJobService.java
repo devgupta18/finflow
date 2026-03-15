@@ -26,6 +26,7 @@ public class BatchJobService {
         batchJob.setStatus(BatchJobStatus.PENDING);
         batchJob.setTotalTransactions(transactions.size());
         batchJob.setProcessedTransactions(0);
+        batchJob.setFailedTransactions(0);
         batchJob.setCreatedAt(LocalDateTime.now());
         batchJobRepository.save(batchJob);
         Long id  = batchJob.getId();
