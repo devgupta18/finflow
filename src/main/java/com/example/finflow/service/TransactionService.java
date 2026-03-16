@@ -1,8 +1,9 @@
 package com.example.finflow.service;
 
 import com.example.finflow.entity.*;
+import com.example.finflow.exception.*;
 import com.example.finflow.repository.*;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalApplicationListener;
 
@@ -32,16 +33,24 @@ public class TransactionService {
         return transaction;
     }
 
-    @Transactional(dontRollbackOn = RuntimeException.class)
+    @Transactional(noRollbackFor = InsufficientFundsException.class)
     public List<Transaction> postTransaction(Long sourceAccountId, Long destinationAccountId , BigDecimal amount, String description) {
-        // Fetch source and destination accounts
-        Account sourceAccount = accountRepository.findById(sourceAccountId).orElseThrow( () -> new RuntimeException("Account not found") );
-        Account destinationAccount = accountRepository.findById(destinationAccountId).orElseThrow( () -> new RuntimeException("Account not found") );
+        // We will acquire lock for smaller account no first to ensure no deadlock occurs
+        Long firstLockId = sourceAccountId < destinationAccountId ? sourceAccountId : destinationAccountId;
+        Long secondLockId = sourceAccountId < destinationAccountId ? destinationAccountId : sourceAccountId;
+
+        // Fetch firstLockId & secondLockId
+        Account firstAccount = accountRepository.findByIdWithLock(firstLockId).orElseThrow( () -> new AccountNotFoundException("Account not found") );
+        Account secondAccount = accountRepository.findByIdWithLock(secondLockId).orElseThrow( () -> new AccountNotFoundException("Account not found") );
+
+        // Assigning back values to sourceAccount & destinationAccount
+        Account sourceAccount = firstAccount.getId().equals(sourceAccountId) ? firstAccount : secondAccount;
+        Account destinationAccount = firstAccount.getId().equals(sourceAccountId) ? secondAccount : firstAccount;
 
         // If balance < 0, log this and don't process transfer
         if(sourceAccount.getBalance().compareTo(amount) < 0){
             transactionRepository.save(buildTransaction(sourceAccount, TransactionType.DEBIT, amount, description,  TransactionStatus.FAILED));
-            throw new RuntimeException("Insufficient funds");
+            throw new InsufficientFundsException("Insufficient funds");
         }
 
         // Update balance
