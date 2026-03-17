@@ -7,6 +7,7 @@ import com.example.finflow.entity.User;
 import com.example.finflow.repository.AccountRepository;
 import com.example.finflow.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -37,6 +38,7 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
+    @Cacheable(value = "accounts", key = "#accountId")
     public Account getAccountById(Long accountId) {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
