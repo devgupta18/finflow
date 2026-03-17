@@ -4,7 +4,7 @@ import com.example.finflow.dto.TransactionResponseDTO;
 import com.example.finflow.entity.Transaction;
 
 public class TransactionMapper {
-    public static TransactionResponseDTO toResponseDTO(Transaction transaction1) {
+    public static TransactionResponseDTO toTransactionResponseDTO(Transaction transaction1) {
         TransactionResponseDTO transactionResponseDTO1 = new TransactionResponseDTO();
         transactionResponseDTO1.setId(transaction1.getId());
         transactionResponseDTO1.setDescription(transaction1.getDescription());

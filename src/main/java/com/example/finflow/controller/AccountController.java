@@ -2,6 +2,7 @@ package com.example.finflow.controller;
 
 import com.example.finflow.dto.AccountRequestDTO;
 import com.example.finflow.dto.AccountResponseDTO;
+import com.example.finflow.dto.AccountUpdateRequestDTO;
 import com.example.finflow.dto.TransactionResponseDTO;
 import com.example.finflow.entity.Account;
 import com.example.finflow.entity.Transaction;
@@ -55,10 +56,17 @@ public class AccountController {
         List<Transaction> transactions = transactionService.getTransactionsByAccountId(id);
         List<TransactionResponseDTO>  transactionResponseDTO = new ArrayList<>();
         for (Transaction transaction1 : transactions) {
-            TransactionResponseDTO transactionResponseDTO1 = TransactionMapper.toResponseDTO(transaction1);
+            TransactionResponseDTO transactionResponseDTO1 = TransactionMapper.toTransactionResponseDTO(transaction1);
             transactionResponseDTO.add(transactionResponseDTO1);
         }
         return ResponseEntity.status(HttpStatus.OK).body(transactionResponseDTO);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AccountResponseDTO> updateAccount(@PathVariable Long id, @RequestBody AccountUpdateRequestDTO accountUpdateRequestDTO) {
+        Account account = accountService.updateAccount(id, accountUpdateRequestDTO.getType(), accountUpdateRequestDTO.getCurrency());
+        AccountResponseDTO accountResponseDTO = getAccountResponseDTO(account);
+        return ResponseEntity.status(HttpStatus.OK).body(accountResponseDTO);
     }
 
 }

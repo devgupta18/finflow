@@ -28,7 +28,7 @@ public class TransactionController {
         List<Transaction> transaction = transactionService.postTransaction(transactionRequestDTO.getSourceAccountId(), transactionRequestDTO.getDestinationAccountId(), transactionRequestDTO.getAmount(), transactionRequestDTO.getDescription());
         List<TransactionResponseDTO>  transactionResponseDTO = new ArrayList<>();
         for (Transaction transaction1 : transaction) {
-            TransactionResponseDTO transactionResponseDTO1 = TransactionMapper.toResponseDTO(transaction1);
+            TransactionResponseDTO transactionResponseDTO1 = TransactionMapper.toTransactionResponseDTO(transaction1);
             transactionResponseDTO.add(transactionResponseDTO1);
         }
         return ResponseEntity.status(HttpStatus.OK).body(transactionResponseDTO);
