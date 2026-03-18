@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Table(name = "transactions")
+@Table(name = "transactions", indexes = {
+        @Index(name = "idx_transactions_account_id", columnList = "account_id")
+})
 @Entity
 @Data
 @NoArgsConstructor
