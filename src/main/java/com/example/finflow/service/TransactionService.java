@@ -3,10 +3,11 @@ package com.example.finflow.service;
 import com.example.finflow.entity.*;
 import com.example.finflow.exception.*;
 import com.example.finflow.repository.*;
+import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionalApplicationListener;
 
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -68,7 +69,7 @@ public class TransactionService {
         return transactions;
     }
 
-    public List<Transaction> getTransactionsByAccountId(Long accountId) {
-        return transactionRepository.findByAccountId(accountId);
+    public Page<Transaction> getTransactionsByAccountId(Long accountId, Pageable pageable) {
+        return transactionRepository.findByAccountId(accountId, pageable);
     }
 }
