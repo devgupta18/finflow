@@ -3,6 +3,8 @@ package com.example.finflow.service;
 import com.example.finflow.entity.*;
 import com.example.finflow.exception.*;
 import com.example.finflow.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
@@ -17,10 +19,13 @@ import java.util.List;
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
+    private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
+    private final FraudDetectionService fraudDetectionService;
 
-    public TransactionService(TransactionRepository transactionRepository, AccountRepository accountRepository) {
+    public TransactionService(TransactionRepository transactionRepository, AccountRepository accountRepository, FraudDetectionService fraudDetectionService) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
+        this.fraudDetectionService = fraudDetectionService;
     }
 
     private Transaction buildTransaction(Account account, TransactionType type, BigDecimal amount, String description, TransactionStatus status) {
@@ -66,6 +71,14 @@ public class TransactionService {
         List<Transaction> transactions = new ArrayList<>();
         transactions.add(transactionRepository.save(buildTransaction(sourceAccount, TransactionType.DEBIT, amount, description, TransactionStatus.COMPLETED)));
         transactions.add(transactionRepository.save(buildTransaction(destinationAccount, TransactionType.CREDIT, amount, description,  TransactionStatus.COMPLETED)));
+
+        fraudDetectionService.analyzeTransaction(transactions.get(0))
+                .thenAccept(isFraudulent -> {
+                   if(isFraudulent) {
+                       log.warn("Fraud detected for transaction {}", transactions.get(0).getId());
+                   }
+                });
+
         return transactions;
     }
 
