@@ -20,12 +20,12 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
     private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
-    private final FraudDetectionService fraudDetectionService;
+    private final TransactionEventProducer transactionEventProducer;
 
-    public TransactionService(TransactionRepository transactionRepository, AccountRepository accountRepository, FraudDetectionService fraudDetectionService) {
+    public TransactionService(TransactionRepository transactionRepository, AccountRepository accountRepository, TransactionEventProducer transactionEventProducer) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
-        this.fraudDetectionService = fraudDetectionService;
+        this.transactionEventProducer = transactionEventProducer;
     }
 
     private Transaction buildTransaction(Account account, TransactionType type, BigDecimal amount, String description, TransactionStatus status) {
@@ -72,12 +72,7 @@ public class TransactionService {
         transactions.add(transactionRepository.save(buildTransaction(sourceAccount, TransactionType.DEBIT, amount, description, TransactionStatus.COMPLETED)));
         transactions.add(transactionRepository.save(buildTransaction(destinationAccount, TransactionType.CREDIT, amount, description,  TransactionStatus.COMPLETED)));
 
-        fraudDetectionService.analyzeTransaction(transactions.get(0))
-                .thenAccept(isFraudulent -> {
-                   if(isFraudulent) {
-                       log.warn("Fraud detected for transaction {}", transactions.get(0).getId());
-                   }
-                });
+        transactionEventProducer.sendTransactionEvent(transactions.getFirst());
 
         return transactions;
     }
