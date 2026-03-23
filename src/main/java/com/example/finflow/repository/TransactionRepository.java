@@ -13,4 +13,5 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Page< Transaction> findByAccountId(Long accountId, Pageable pageable);
     List<Transaction> findByAccountAndTimestampAfter(Account account, LocalDateTime since);
+    List<Transaction> findByAccountIdAndTimestampAfter(Long accountId, LocalDateTime since);
 }
