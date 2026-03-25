@@ -35,8 +35,7 @@ public class BatchJobService {
     }
 
     public BatchJob getBatchJob(Long id) {
-        BatchJob batchJob = batchJobRepository.findById(id)
+        return batchJobRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Batch not found"));
-        return batchJob;
     }
 }
