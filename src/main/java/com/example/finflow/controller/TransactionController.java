@@ -7,10 +7,7 @@ import com.example.finflow.mapper.TransactionMapper;
 import com.example.finflow.service.TransactionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +21,8 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<List<TransactionResponseDTO>> createTransaction(@RequestBody TransactionRequestDTO transactionRequestDTO) {
-        List<Transaction> transaction = transactionService.postTransaction(transactionRequestDTO.getSourceAccountId(), transactionRequestDTO.getDestinationAccountId(), transactionRequestDTO.getAmount(), transactionRequestDTO.getDescription());
+    public ResponseEntity<List<TransactionResponseDTO>> createTransaction(@RequestBody TransactionRequestDTO transactionRequestDTO, @RequestHeader("Idempotency-Key") String idempotencyKey) {
+        List<Transaction> transaction = transactionService.postTransaction(transactionRequestDTO.getSourceAccountId(), transactionRequestDTO.getDestinationAccountId(), transactionRequestDTO.getAmount(), transactionRequestDTO.getDescription(), idempotencyKey);
         List<TransactionResponseDTO>  transactionResponseDTO = new ArrayList<>();
         for (Transaction transaction1 : transaction) {
             TransactionResponseDTO transactionResponseDTO1 = TransactionMapper.toTransactionResponseDTO(transaction1);

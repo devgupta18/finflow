@@ -21,11 +21,13 @@ public class TransactionService {
     private final AccountRepository accountRepository;
     private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
     private final TransactionEventProducer transactionEventProducer;
+    private final IdempotencyService idempotencyService;
 
-    public TransactionService(TransactionRepository transactionRepository, AccountRepository accountRepository, TransactionEventProducer transactionEventProducer) {
+    public TransactionService(TransactionRepository transactionRepository, AccountRepository accountRepository, TransactionEventProducer transactionEventProducer, IdempotencyService idempotencyService) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
         this.transactionEventProducer = transactionEventProducer;
+        this.idempotencyService = idempotencyService;
     }
 
     private Transaction buildTransaction(Account account, TransactionType type, BigDecimal amount, String description, TransactionStatus status) {
@@ -40,7 +42,11 @@ public class TransactionService {
     }
 
     @Transactional(noRollbackFor = InsufficientFundsException.class)
-    public List<Transaction> postTransaction(Long sourceAccountId, Long destinationAccountId , BigDecimal amount, String description) {
+    public List<Transaction> postTransaction(Long sourceAccountId, Long destinationAccountId , BigDecimal amount, String description, String idempotencyKey) {
+        if(idempotencyService.isIdempotent(idempotencyKey)) {
+            throw new DuplicateRequestException("Duplicate request");
+        }
+
         // We will acquire lock for smaller account no first to ensure no deadlock occurs
         Long firstLockId = sourceAccountId < destinationAccountId ? sourceAccountId : destinationAccountId;
         Long secondLockId = sourceAccountId < destinationAccountId ? destinationAccountId : sourceAccountId;
@@ -74,6 +80,7 @@ public class TransactionService {
 
         transactionEventProducer.sendTransactionEvent(transactions.getFirst());
 
+        idempotencyService.storeKey(idempotencyKey);
         return transactions;
     }
 

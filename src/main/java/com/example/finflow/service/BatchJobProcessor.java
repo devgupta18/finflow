@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -21,14 +22,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BatchJobProcessor {
     private final TransactionService transactionService;
     private final BatchJobRepository  batchJobRepository;
-    private final FraudDetectionService fraudDetectionService;
     private final Executor executor;
     private final RedissonClient redissonClient;
 
-    public BatchJobProcessor(TransactionService transactionService, BatchJobRepository batchJobRepository, FraudDetectionService fraudDetectionService, @Qualifier("fraudDetectionExecutor") Executor executor, RedissonClient redissonClient) {
+    public BatchJobProcessor(TransactionService transactionService, BatchJobRepository batchJobRepository, @Qualifier("fraudDetectionExecutor") Executor executor, RedissonClient redissonClient) {
         this.transactionService = transactionService;
         this.batchJobRepository = batchJobRepository;
-        this.fraudDetectionService = fraudDetectionService;
         this.executor = executor;
         this.redissonClient = redissonClient;
     }
@@ -52,7 +51,8 @@ public class BatchJobProcessor {
             List<CompletableFuture<Void>> futures = transactions.stream()
                     .map(t -> CompletableFuture.runAsync( () -> {
                         try {
-                            transactionService.postTransaction(t.getSourceAccountId(), t.getDestinationAccountId(), t.getAmount(), t.getDescription());
+                            String key = UUID.randomUUID().toString();
+                            transactionService.postTransaction(t.getSourceAccountId(), t.getDestinationAccountId(), t.getAmount(), t.getDescription(), key);
                             processedCount.incrementAndGet();
                         } catch (Exception ex) {
                             failedCount.incrementAndGet();
