@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class TransactionEventProducer {
-
     private final KafkaTemplate<String, TransactionEvent> kafkaTemplate;
 
     public TransactionEventProducer(KafkaTemplate<String, TransactionEvent> kafkaTemplate) {
