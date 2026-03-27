@@ -47,7 +47,6 @@ public class BatchJobProcessor {
             AtomicInteger processedCount = new AtomicInteger(0);
             AtomicInteger failedCount = new AtomicInteger(0);
 
-
             List<CompletableFuture<Void>> futures = transactions.stream()
                     .map(t -> CompletableFuture.runAsync( () -> {
                         try {

@@ -3,6 +3,9 @@ package com.example.finflow.service;
 import com.example.finflow.dto.TransactionEvent;
 import com.example.finflow.entity.Transaction;
 import com.example.finflow.repository.TransactionRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +18,8 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class FraudDetectionService {
     private final TransactionRepository transactionRepository;
+    private static final Logger log = LoggerFactory.getLogger(FraudDetectionService.class);
+
     public FraudDetectionService(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
     }
@@ -43,7 +48,13 @@ public class FraudDetectionService {
         return event.getAmount().compareTo(BigDecimal.valueOf(1000)) > 0 && smallAmount;
     }
 
+    public CompletableFuture<Boolean> fallbackAnalyze(TransactionEvent event, Exception e) {
+        log.warn("Fraud detection service is down: {}", e.getMessage());
+        return CompletableFuture.completedFuture(false);
+    }
+
     @Async("fraudDetectionExecutor")
+    @CircuitBreaker(name = "fraudDetection", fallbackMethod = "fallbackAnalyze")
     public CompletableFuture<Boolean> analyzeTransaction(TransactionEvent event) {
         boolean isHighFrequency = isHighFrequency(event);
         boolean isOddHour = isOddHour(event);
