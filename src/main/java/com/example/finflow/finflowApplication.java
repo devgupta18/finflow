@@ -15,10 +15,5 @@ public class finflowApplication {
         System.out.println("Application Started");
 		SpringApplication.run(finflowApplication.class, args);
         System.out.println("Application Ended");
-
-        RedisClient client = RedisClient.create("redis://localhost:6379");
-        StatefulRedisConnection<String, String> conn = client.connect();
-        conn.sync().set("test", "hello");
-        System.out.println("Redis test: " + conn.sync().get("test"));
 	}
 }
