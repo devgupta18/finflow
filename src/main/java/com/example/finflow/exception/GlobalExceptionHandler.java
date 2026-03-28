@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InsufficientFundsException.class)
     public ResponseEntity<ErrorResponse> handleException(InsufficientFundsException ex) {
         ErrorResponse error = new ErrorResponse(422, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(error);
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
     }
 
     @ExceptionHandler(UserNotFoundException.class)

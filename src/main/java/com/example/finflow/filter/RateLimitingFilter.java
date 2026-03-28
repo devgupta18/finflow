@@ -7,6 +7,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -33,7 +35,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         Bucket bucket = proxyManager.builder()
                 .build(key, () -> configuration);
 
-        if(!bucket.tryConsume(1)) {
+        boolean consumed = bucket.tryConsume(1);
+
+        if(!consumed) {
             response.sendError(429, "Too many requests");
             return;
         }
