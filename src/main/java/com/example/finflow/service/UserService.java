@@ -31,7 +31,7 @@ public class UserService implements UserDetailsService {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
         user.setCreatedAt(LocalDateTime.now());
-        return  userRepository.save(user);
+        return userRepository.save(user);
     }
 
     public User updateUser(Long id, String name, String email, String password) {
@@ -48,6 +48,6 @@ public class UserService implements UserDetailsService {
         Collection<? extends GrantedAuthority> authorities = List.of(
                 new SimpleGrantedAuthority("ROLE_USER")
         );
-        return new org.springframework.security.core.userdetails.User(user.getName(), user.getPassword(), authorities);
+        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), authorities);
     }
 }
